@@ -1,0 +1,8 @@
+# Coloque aqui os arquivos .pkl gerados pelo save_models.py após o treinamento no Colab:
+#
+#   classification_pipeline.pkl
+#   regression_pipeline.pkl
+#   clustering_pipeline.pkl
+#   recommendation_pipeline.pkl
+#
+# O servidor (ml_server.py) carrega automaticamente qualquer .pkl encontrado aqui.

@@ -1,0 +1,1146 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UNIGRAM | ML Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --font-body: "Manrope", "Segoe UI", Arial, sans-serif;
+      --font-display: "Space Grotesk", "Segoe UI", Arial, sans-serif;
+
+      --bg: #0b111b;
+      --bg-soft: #0f1726;
+      --panel: #111b2d;
+      --panel-strong: #16233a;
+      --border: #24344f;
+
+      --text: #e7edf7;
+      --muted: #a4b2c8;
+      --muted-strong: #7f92ad;
+
+      --accent: #f2c811;
+      --accent-strong: #ffe173;
+      --accent-blue: #4ea3ff;
+      --success: #2dd4bf;
+      --warning: #f59e0b;
+      --danger: #f87171;
+      --info: #60a5fa;
+
+      --chart-text: #dbe7ff;
+      --chart-muted: #9fb0c7;
+      --chart-grid: #22324c;
+      --chart-border: #0c1322;
+      --chart-1: #4ea3ff;
+      --chart-2: #f2c811;
+      --chart-3: #2dd4bf;
+      --chart-4: #f97316;
+      --chart-5: #a78bfa;
+
+      --spacing-xs: 0.4rem;
+      --spacing-sm: 0.8rem;
+      --spacing-md: 1.2rem;
+      --spacing-lg: 1.8rem;
+      --spacing-xl: 2.4rem;
+
+      --radius: 10px;
+      --radius-lg: 16px;
+
+      --shadow: 0 14px 30px rgba(4, 10, 22, 0.35);
+      --shadow-sm: 0 6px 16px rgba(4, 10, 22, 0.2);
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(78, 163, 255, 0.12), transparent 60%),
+        radial-gradient(1000px 500px at 110% 0%, rgba(242, 200, 17, 0.12), transparent 55%),
+        var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .dashboard {
+      position: relative;
+      z-index: 1;
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 32px 28px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      padding: 20px 24px;
+      background: var(--panel);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-right: 20px;
+      border-right: 1px solid var(--border);
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+      color: #1a1a1a;
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 8px 18px rgba(242, 200, 17, 0.25);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      font-size: 0.95rem;
+    }
+
+    .brand-sub {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .header-title h1 {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      letter-spacing: 0.01em;
+      margin-bottom: 6px;
+    }
+
+    .header-title p {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      background: var(--panel-strong);
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 6px rgba(45, 212, 191, 0.15);
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.offline {
+      background: var(--danger);
+      box-shadow: 0 0 0 6px rgba(248, 113, 113, 0.15);
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .context-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      padding: 16px 18px;
+      background: rgba(17, 27, 45, 0.78);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(8px);
+    }
+
+    .context-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 12px 14px;
+      background: var(--panel-strong);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+    }
+
+    .context-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .context-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .context-meta {
+      font-size: 0.75rem;
+      color: var(--muted-strong);
+    }
+
+    .grid {
+      display: grid;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+    @media (max-width: 1024px) {
+      .header { flex-direction: column; align-items: flex-start; }
+      .header-left { flex-direction: column; align-items: flex-start; }
+      .brand { border-right: none; padding-right: 0; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: repeat(2, 1fr); }
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 720px) {
+      .dashboard { padding: 24px 18px 40px; }
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      border-color: rgba(242, 200, 17, 0.45);
+      transform: translateY(-2px);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(242, 200, 17, 0.8), transparent);
+      opacity: 0.35;
+    }
+
+    .kpi-card {
+      text-align: left;
+      padding: var(--spacing-lg);
+      border-left: 3px solid var(--accent);
+    }
+
+    .kpi-label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: var(--spacing-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .kpi-value {
+      display: block;
+      font-size: 2.3rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: var(--spacing-xs);
+      font-family: var(--font-display);
+    }
+
+    .kpi-change {
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--muted);
+    }
+
+    .kpi-change.positive {
+      background: rgba(45, 212, 191, 0.15);
+      color: var(--success);
+    }
+
+    .kpi-change.negative {
+      background: rgba(248, 113, 113, 0.15);
+      color: var(--danger);
+    }
+
+    .chart-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 320px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-md);
+      padding-bottom: var(--spacing-md);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-header span:first-child {
+      font-weight: 600;
+      font-size: 1rem;
+      font-family: var(--font-display);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      background: rgba(242, 200, 17, 0.15);
+      color: var(--accent);
+      border-radius: 999px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .chip.secondary { background: rgba(78, 163, 255, 0.15); color: var(--accent-blue); }
+    .chip.primary { background: rgba(78, 163, 255, 0.15); color: var(--accent-blue); }
+    .chip.success { background: rgba(45, 212, 191, 0.15); color: var(--success); }
+    .chip.warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .chip.danger { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+    .chip.info { background: rgba(96, 165, 250, 0.15); color: var(--info); }
+
+    .chart {
+      flex: 1;
+      position: relative;
+      min-height: 220px;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: var(--spacing-sm);
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 6px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab {
+      padding: 8px 16px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 600;
+      border-radius: 999px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      font-size: 0.85rem;
+    }
+
+    .tab:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab.active {
+      color: #1a1a1a;
+      background: var(--accent);
+      box-shadow: 0 8px 18px rgba(242, 200, 17, 0.25);
+    }
+
+    .section {
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: var(--spacing-lg);
+      color: var(--text);
+      font-family: var(--font-display);
+    }
+
+    .filter-group {
+      display: flex;
+      gap: var(--spacing-md);
+      padding: 16px 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      flex-wrap: wrap;
+      align-items: flex-end;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .filter-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .filter-item label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .filter-item input,
+    .filter-item select {
+      padding: 10px 12px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.9rem;
+      min-width: 200px;
+    }
+
+    .filter-item input:focus,
+    .filter-item select:focus {
+      outline: none;
+      border-color: rgba(242, 200, 17, 0.7);
+      box-shadow: 0 0 0 3px rgba(242, 200, 17, 0.15);
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #1a1a1a;
+      box-shadow: 0 8px 18px rgba(242, 200, 17, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-strong);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: var(--spacing-md);
+      font-size: 0.9rem;
+    }
+
+    .table thead {
+      background: var(--panel-strong);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .table th {
+      padding: 12px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .table td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .metric {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      padding: var(--spacing-md);
+      background: var(--panel-strong);
+      border-radius: var(--radius);
+      border-left: 4px solid var(--accent);
+    }
+
+    .metric-icon {
+      font-size: 1.6rem;
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: var(--spacing-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .metric-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .alert {
+      padding: var(--spacing-md);
+      border-radius: var(--radius);
+      border-left: 4px solid;
+      margin-bottom: var(--spacing-md);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .alert-info {
+      border-color: var(--info);
+      color: var(--info);
+    }
+
+    .alert-success {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .alert-warning {
+      border-color: var(--warning);
+      color: var(--warning);
+    }
+
+    .alert-danger {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .badge-primary { background: rgba(78, 163, 255, 0.2); color: var(--accent-blue); }
+    .badge-secondary { background: rgba(167, 139, 250, 0.2); color: #c4b5fd; }
+    .badge-success { background: rgba(45, 212, 191, 0.2); color: var(--success); }
+    .badge-warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+    .badge-danger { background: rgba(248, 113, 113, 0.2); color: var(--danger); }
+
+    .list {
+      list-style: none;
+    }
+
+    .list li {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .list li:last-child {
+      border-bottom: none;
+    }
+
+    .list-label {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .list-value {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .list-pill {
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(242, 200, 17, 0.15);
+      color: var(--accent);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .code-pill {
+      background: var(--bg-soft);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .text-success {
+      color: var(--success);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <div class="brand">
+          <div class="brand-mark">U</div>
+          <div class="brand-text">
+            <span class="brand-title">UNIGRAM</span>
+            <span class="brand-sub">Power BI ML</span>
+          </div>
+        </div>
+        <div class="header-title">
+          <h1>ML Pipeline Dashboard</h1>
+          <p>Sistema de previsões integrado com FastAPI</p>
+        </div>
+      </div>
+      <div class="status-indicator">
+        <div class="status-dot" id="api-status"></div>
+        <span id="api-status-text">Conectando...</span>
+      </div>
+    </div>
+
+    <!-- Context Strip -->
+    <div class="context-strip">
+      <div class="context-card">
+        <span class="context-label">Dataset</span>
+        <span class="context-value">LinkedIn Jobs (Kaggle)</span>
+        <span class="context-meta">Fonte: Kaggle • Atualização: --</span>
+      </div>
+      <div class="context-card">
+        <span class="context-label">API Base</span>
+        <span class="context-value" id="context-api-url">http://localhost:8000</span>
+        <span class="context-meta">FastAPI • JSON</span>
+      </div>
+      <div class="context-card">
+        <span class="context-label">Pipelines</span>
+        <span class="context-value">Classificação, Regressão, Clusterização, Recomendação</span>
+        <span class="context-meta">Modelos ativos: 4</span>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-group">
+      <div class="filter-item">
+        <label>URL da API</label>
+        <input type="text" id="api-url" placeholder="http://localhost:8000" value="http://localhost:8000" />
+      </div>
+      <div class="filter-item">
+        <label>Período</label>
+        <select id="filter-period">
+          <option value="7">Últimos 7 dias</option>
+          <option value="30" selected>Últimos 30 dias</option>
+          <option value="90">Últimos 90 dias</option>
+          <option value="all">Todo o período</option>
+        </select>
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn btn-primary" id="btn-refresh">Atualizar</button>
+        <button class="btn btn-secondary" id="btn-export">Exportar dados</button>
+      </div>
+    </div>
+
+    <!-- Tabs para navegação de pipelines -->
+    <div class="tabs">
+      <button class="tab active" data-tab="overview">Visão Geral</button>
+      <button class="tab" data-tab="classification">Classificação</button>
+      <button class="tab" data-tab="regression">Regressão</button>
+      <button class="tab" data-tab="clustering">Clusterização</button>
+      <button class="tab" data-tab="recommendation">Recomendação</button>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    <div id="overview" class="section">
+      <h2 class="section-title">Visão Geral dos Modelos</h2>
+
+      <div class="grid grid-4">
+        <div class="card kpi-card">
+          <span class="kpi-label">Modelos Disponíveis</span>
+          <span class="kpi-value" id="kpi-models-count">-</span>
+          <span class="kpi-change positive">Todos ativos</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label">Taxa de Acurácia Média</span>
+          <span class="kpi-value" id="kpi-accuracy">-</span>
+          <span class="kpi-change" id="kpi-accuracy-change">-</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label">Dados Processados</span>
+          <span class="kpi-value" id="kpi-processed">-</span>
+          <span class="kpi-change positive">Esta sessão</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label">Latência Média (ms)</span>
+          <span class="kpi-value" id="kpi-latency">-</span>
+          <span class="kpi-change positive">Alta performance</span>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: var(--spacing-lg);">
+        <div class="card chart-card">
+          <div class="card-header">
+            <span>Performance dos Modelos</span>
+            <span class="chip">Comparativo</span>
+          </div>
+          <div class="chart">
+            <canvas id="chart-models-performance"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-header">
+            <span>Distribuição de Predições</span>
+            <span class="chip">Pizza</span>
+          </div>
+          <div class="chart">
+            <canvas id="chart-predictions-distribution"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: var(--spacing-lg);">
+        <div class="card-header">
+          <span>Status dos Endpoints</span>
+          <span class="chip success">Live</span>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Pipeline</th>
+              <th>Endpoint</th>
+              <th>Status</th>
+              <th>Última Resposta</th>
+              <th>Tempo de Resposta</th>
+            </tr>
+          </thead>
+          <tbody id="table-endpoints">
+            <tr>
+              <td colspan="5" class="loading"><div class="spinner"></div> Carregando...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CLASSIFICATION TAB -->
+    <div id="classification" class="section" style="display: none;">
+      <h2 class="section-title">Pipeline de Classificação</h2>
+      <p style="color: var(--muted); margin-bottom: var(--spacing-lg);">Predição de presença de habilidades em vagas de emprego</p>
+
+      <div class="grid grid-3">
+        <div class="card kpi-card">
+          <span class="kpi-label">Acurácia</span>
+          <span class="kpi-value" id="clf-accuracy">-</span>
+          <span class="kpi-change positive" id="clf-accuracy-change">-</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label">Precisão</span>
+          <span class="kpi-value" id="clf-precision">-</span>
+          <span class="kpi-change" id="clf-precision-change">-</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label">F1-Score</span>
+          <span class="kpi-value" id="clf-f1">-</span>
+          <span class="kpi-change" id="clf-f1-change">-</span>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: var(--spacing-lg);">
+        <div class="card chart-card">
+          <div class="card-header">
+            <span>Matriz de Confusão</span>
+            <span class="chip primary">Binária</span>
+          </div>
+          <div class="chart">
+            <canvas id="chart-confusion-matrix"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-header">
+            <span>Distribuição de Classes</span>
+            <span class="chip secondary">Balanceamento</span>
+          </div>
+          <div class="chart">
+            <canvas id="chart-class-distribution"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: var(--spacing-lg);">
+        <div class="card-header">
+          <span>Fazer Predição</span>
+          <span class="chip info">Teste</span>
+        </div>
+        <div style="margin-top: var(--spacing-md);">
+          <div class="filter-group">
+            <div class="filter-item">
+              <label>Texto de Habilidade</label>
+              <input type="text" id="clf-input" placeholder="Ex: Python, Machine Learning, SQL..." />
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+              <button class="btn btn-primary" id="btn-clf-predict">Prever</button>
+            </div>
+          </div>
+          <div id="clf-result" style="margin-top: var(--spacing-md); display: none;">
+            <div class="alert alert-success">
+              <strong>Resultado:</strong> <span id="clf-result-text"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: var(--spacing-lg);">
+        <div class="card-header">
+          <span>Importância das Features</span>
+          <span class="chip warning">Top 10</span>
+        </div>
+        <div class="chart">
+          <canvas id="chart-feature-importance"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- REGRESSION TAB -->
+    <div id="regression" class="section" style="display: none;">
+      <h2 class="section-title">Pipeline de Regressão</h2>
+      <p style="color: var(--muted); margin-bottom: var(--spacing-lg);">Previsão do número de habilidades requeridas</p>
+
+      <div class="grid grid-3">
+        <div class="card kpi-card">
+          <span class="kpi-label">RMSE</span>
+          <span class="kpi-value" id="reg-rmse">-</span>
+          <span class="kpi-change" id="reg-rmse-change">-</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label">MAE</span>
+          <span class="kpi-value" id="reg-mae">-</span>
+          <span class="kpi-change" id="reg-mae-change">-</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label">R² Score</span>
+          <span class="kpi-value" id="reg-r2">-</span>
+          <span class="kpi-change positive" id="reg-r2-change">-</span>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: var(--spacing-lg);">
+        <div class="card chart-card">
+          <div class="card-header">
+            <span>Previsto vs Real</span>
+            <span class="chip secondary">Correlação</span>
+          </div>
+          <div class="chart">
+            <canvas id="chart-regression-scatter"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-header">
+            <span>Distribuição de Resíduos</span>
+            <span class="chip warning">Histograma</span>
+          </div>
+          <div class="chart">
+            <canvas id="chart-residuals"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: var(--spacing-lg);">
+        <div class="card-header">
+          <span>Fazer Predição</span>
+          <span class="chip info">Teste</span>
+        </div>
+        <div style="margin-top: var(--spacing-md);">
+          <div class="filter-group">
+            <div class="filter-item">
+              <label>Descrição da Vaga</label>
+              <input type="text" id="reg-input" placeholder="Ex: Vaga senior de data science com Python..." />
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+              <button class="btn btn-primary" id="btn-reg-predict">Prever</button>
+            </div>
+          </div>
+          <div id="reg-result" style="margin-top: var(--spacing-md); display: none;">
+            <div class="alert alert-success">
+              <strong>Número de Habilidades Previsto:</strong> <span id="reg-result-text"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLUSTERING TAB -->
+    <div id="clustering" class="section" style="display: none;">
+      <h2 class="section-title">Pipeline de Clusterização</h2>
+      <p style="color: var(--muted); margin-bottom: var(--spacing-lg);">Agrupamento de vagas por similaridade de habilidades</p>
+
+      <div class="grid grid-3">
+        <div class="card kpi-card">
+          <span class="kpi-label">Número de Clusters</span>
+          <span class="kpi-value" id="clust-k">-</span>
+          <span class="kpi-change positive">Otimizado</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label">Silhueta</span>
+          <span class="kpi-value" id="clust-silhouette">-</span>
+          <span class="kpi-change" id="clust-silhouette-change">-</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label">Vagas Agrupadas</span>
+          <span class="kpi-value" id="clust-samples">-</span>
+          <span class="kpi-change positive">Completo</span>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: var(--spacing-lg);">
+        <div class="card chart-card">
+          <div class="card-header">
+            <span>Distribuição de Clusters</span>
+            <span class="chip secondary">Contagem</span>
+          </div>
+          <div class="chart">
+            <canvas id="chart-cluster-distribution"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-header">
+            <span>Tamanho dos Clusters</span>
+            <span class="chip warning">Radar</span>
+          </div>
+          <div class="chart">
+            <canvas id="chart-cluster-sizes"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: var(--spacing-lg);">
+        <div class="card-header">
+          <span>Características dos Clusters</span>
+          <span class="chip success">Análise</span>
+        </div>
+        <table class="table" id="table-cluster-characteristics">
+          <thead>
+            <tr>
+              <th>Cluster</th>
+              <th>Tamanho</th>
+              <th>Habilidades Principais</th>
+              <th>Score Silhueta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="4" class="loading"><div class="spinner"></div> Carregando...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RECOMMENDATION TAB -->
+    <div id="recommendation" class="section" style="display: none;">
+      <h2 class="section-title">Sistema de Recomendação</h2>
+      <p style="color: var(--muted); margin-bottom: var(--spacing-lg);">Recomendação de habilidades e vagas similares</p>
+
+      <div class="grid grid-3">
+        <div class="card kpi-card">
+          <span class="kpi-label">Precisão (Hit Rate)</span>
+          <span class="kpi-value" id="rec-hit-rate">-</span>
+          <span class="kpi-change positive" id="rec-hit-rate-change">-</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label">Tempo Médio (ms)</span>
+          <span class="kpi-value" id="rec-latency">-</span>
+          <span class="kpi-change positive">Rápido</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label">Cobertura</span>
+          <span class="kpi-value" id="rec-coverage">-</span>
+          <span class="kpi-change positive">Completo</span>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: var(--spacing-lg);">
+        <div class="card chart-card">
+          <div class="card-header">
+            <span>Taxa de Relevância</span>
+            <span class="chip secondary">Linha</span>
+          </div>
+          <div class="chart">
+            <canvas id="chart-relevance-trend"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-header">
+            <span>Distribuição de Scores</span>
+            <span class="chip warning">Histograma</span>
+          </div>
+          <div class="chart">
+            <canvas id="chart-recommendation-scores"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: var(--spacing-lg);">
+        <div class="card-header">
+          <span>Fazer Recomendação</span>
+          <span class="chip info">Teste</span>
+        </div>
+        <div style="margin-top: var(--spacing-md);">
+          <div class="filter-group">
+            <div class="filter-item">
+              <label>ID da Vaga</label>
+              <input type="text" id="rec-input" placeholder="Ex: 12345" />
+            </div>
+            <div class="filter-item">
+              <label>Quantidade de Recomendações</label>
+              <input type="number" id="rec-count" min="1" max="20" value="5" />
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+              <button class="btn btn-primary" id="btn-rec-predict">Recomendar</button>
+            </div>
+          </div>
+          <div id="rec-result" style="margin-top: var(--spacing-md); display: none;">
+            <div class="alert alert-success">
+              <strong>Vagas Similares:</strong>
+              <ul id="rec-result-list" class="list" style="margin-top: var(--spacing-md);"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: var(--spacing-lg);">
+        <div class="card-header">
+          <span>Top Habilidades Recomendadas</span>
+          <span class="chip warning">Popular</span>
+        </div>
+        <div class="chart">
+          <canvas id="chart-top-recommended-skills"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="ml-dashboard.js"></script>
+</body>
+</html>
+
+
+
+
+

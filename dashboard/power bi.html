@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UNIGRAM | Analytics</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="auth-screen" class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="brand-logo brand-logo--lg">U</div>
+        <div class="brand-text">
+          <span class="brand-title">UNIGRAM</span>
+          <span class="brand-sub">Analytics Console</span>
+        </div>
+      </div>
+
+      <h1 class="auth-title">Entrar</h1>
+      <p class="auth-subtitle">Rede acadêmica + vagas. Painéis com 25+ visões e gamificação.</p>
+
+      <form id="login-form" class="auth-form" autocomplete="off">
+        <label class="field">
+          <span>Usuário</span>
+          <input id="login-user" type="text" placeholder="admin" />
+        </label>
+        <label class="field">
+          <span>Senha</span>
+          <input id="login-pass" type="password" placeholder="admin" />
+        </label>
+        <button class="btn btn-primary" type="submit">Entrar</button>
+        <div id="login-error" class="auth-error" aria-live="polite"></div>
+      </form>
+
+      <div class="auth-hint">
+        <span>Demo:</span> usuário <strong>admin</strong> e senha <strong>admin</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">U</div>
+        <div class="brand-text">
+          <span class="brand-title">UNIGRAM</span>
+          <span class="brand-sub">Social + Jobs BI</span>
+        </div>
+      </div>
+
+      <nav class="nav-section" aria-label="Navegação">
+        <span class="nav-label">Painéis</span>
+        <button class="nav-item active" data-panel="panel-overview">Visão Geral</button>
+        <button class="nav-item" data-panel="panel-engajamento">Engajamento</button>
+        <button class="nav-item" data-panel="panel-conteudo">Conteúdo</button>
+        <button class="nav-item" data-panel="panel-pessoas">Pessoas</button>
+        <button class="nav-item" data-panel="panel-vagas">Vagas</button>
+        <button class="nav-item" data-panel="panel-localizacao">Localização</button>
+        <button class="nav-item" data-panel="panel-rai">Análise do RAI</button>
+        <button class="nav-item" data-panel="panel-perfil">Perfil</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-meta">
+          <span class="small-label">Sessão</span>
+          <span id="session-user" class="small-value">admin</span>
+        </div>
+        <div class="sidebar-meta">
+          <span class="small-label">Atualizado</span>
+          <span id="last-refresh" class="small-value">--</span>
+        </div>
+        <button id="logout-btn" class="btn btn-ghost btn-full">Sair</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="main-header">
+        <div class="header-left">
+          <h1 id="page-title">Visão Geral</h1>
+          <p class="subtitle" id="page-subtitle">Indicadores-chave da rede acadêmica e de vagas.</p>
+        </div>
+
+        <div class="filters">
+          <div class="filter-chip">
+            <span class="chip-label">Período</span>
+            <select id="filter-period">
+              <option value="365">Últimos 12 meses</option>
+              <option value="90">Últimos 90 dias</option>
+              <option value="30" selected>Últimos 30 dias</option>
+              <option value="7">Últimos 7 dias</option>
+              <option value="all">Todo o período</option>
+            </select>
+          </div>
+
+          <div class="filter-chip">
+            <span class="chip-label">Curso</span>
+            <select id="filter-course"></select>
+          </div>
+
+          <div class="filter-chip">
+            <span class="chip-label">Local</span>
+            <select id="filter-location"></select>
+          </div>
+        </div>
+      </header>
+
+      <!-- VISÃO GERAL -->
+      <section class="section" id="panel-overview">
+        <h2 class="section-title">Overview</h2>
+        <div class="grid grid-4">
+          <div class="card kpi" id="kpi-total-users"><span class="kpi-label">Usuários Totais</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-total-users-sub">--</span></div>
+          <div class="card kpi" id="kpi-active-users"><span class="kpi-label">Usuários Ativos (30d)</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-active-users-sub">--</span></div>
+          <div class="card kpi" id="kpi-total-posts"><span class="kpi-label">Posts (Período)</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-total-posts-sub">--</span></div>
+          <div class="card kpi" id="kpi-total-comments"><span class="kpi-label">Comentários (Período)</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-total-comments-sub">--</span></div>
+        </div>
+
+        <div class="grid grid-4 mt-14">
+          <div class="card chart-card"><div class="card-header"><span>Atividade diária (posts + comentários)</span><span class="chip">Linha</span></div><div class="chart" id="chart-activity-daily"></div></div>
+          <div class="card chart-card"><div class="card-header"><span>Funil de vagas (views → applies)</span><span class="chip">Funil</span></div><div class="chart" id="chart-jobs-funnel"></div></div>
+          <div class="card chart-card"><div class="card-header"><span>Engajamento (interações/post)</span><span class="chip">KPI</span></div><div class="chart" id="chart-engagement-rate"></div></div>
+          <div class="card chart-card">
+            <div class="card-header"><span>Top cursos (atividade)</span><span class="chip">Ranking</span></div>
+            <div class="chart" id="chart-overview-courses"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-4 mt-14">
+          <div class="card kpi" id="kpi-overview-engagement">
+            <span class="kpi-label">Interações (Período)</span>
+            <span class="kpi-value">--</span>
+            <span class="kpi-sub" id="kpi-overview-engagement-sub">--</span>
+          </div>
+          <div class="card kpi" id="kpi-overview-jobs">
+            <span class="kpi-label">Pipeline de Vagas</span>
+            <span class="kpi-value">--</span>
+            <span class="kpi-sub" id="kpi-overview-jobs-sub">--</span>
+          </div>
+          <div class="card kpi" id="kpi-overview-courses">
+            <span class="kpi-label">Cursos com Atividade</span>
+            <span class="kpi-value">--</span>
+            <span class="kpi-sub" id="kpi-overview-courses-sub">--</span>
+          </div>
+          <div class="card kpi" id="kpi-overview-language">
+            <span class="kpi-label">Idioma dominante</span>
+            <span class="kpi-value">--</span>
+            <span class="kpi-sub" id="kpi-overview-language-sub">--</span>
+          </div>
+        </div>
+
+        <div class="grid grid-3 mt-14">
+          <div class="card chart-card">
+            <div class="card-header"><span>Posts por curso</span><span class="chip">Pizza</span></div>
+            <div class="chart" id="chart-overview-posts-by-course"></div>
+          </div>
+          <div class="card chart-card">
+            <div class="card-header"><span>Posts por cidade</span><span class="chip">Barra</span></div>
+            <div class="chart" id="chart-overview-posts-by-city"></div>
+          </div>
+          <div class="card chart-card">
+            <div class="card-header"><span>Posts público x privado</span><span class="chip">Donut</span></div>
+            <div class="chart" id="chart-overview-visibility"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-2 mt-14">
+          <div class="card table-card">
+            <div class="card-header"><span>Resumo rápido</span><span class="chip">Top 5</span></div>
+            <table class="data-table" id="table-overview-top5">
+              <thead><tr><th>Indicador</th><th>Valor</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="card table-card">
+            <div class="card-header"><span>Alertas gerais</span><span class="chip">Status</span></div>
+            <div id="overview-alerts" class="rai-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ENGAJAMENTO -->
+      <section class="section panel-hidden" id="panel-engajamento">
+        <h2 class="section-title">Engajamento</h2>
+        <div class="grid grid-3">
+          <div class="card chart-card"><div class="card-header"><span>Posts por Hora</span><span class="chip">Barra</span></div><div class="chart" id="chart-posts-hour"></div></div>
+          <div class="card chart-card"><div class="card-header"><span>Comentários por Hora</span><span class="chip">Barra</span></div><div class="chart" id="chart-comments-hour"></div></div>
+          <div class="card chart-card"><div class="card-header"><span>Posts vs Comentários</span><span class="chip">Comparativo</span></div><div class="chart chart-ratio" id="chart-posts-comments-ratio"></div></div>
+        </div>
+
+        <div class="grid grid-3 mt-14">
+          <div class="card chart-card"><div class="card-header"><span>Likes por dia</span><span class="chip">Linha</span></div><div class="chart" id="chart-likes-daily"></div></div>
+          <div class="card chart-card"><div class="card-header"><span>Shares por dia</span><span class="chip">Linha</span></div><div class="chart" id="chart-shares-daily"></div></div>
+          <div class="card chart-card"><div class="card-header"><span>Interações por tipo</span><span class="chip">Donut</span></div><div class="chart" id="chart-interactions-type"></div></div>
+        </div>
+      </section>
+
+      <!-- CONTEÚDO -->
+      <section class="section panel-hidden" id="panel-conteudo">
+        <h2 class="section-title">Conteúdo</h2>
+        <div class="grid grid-4">
+          <div class="card kpi" id="kpi-posts-with-text"><span class="kpi-label">Posts com Texto</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-posts-with-text-sub">--</span></div>
+          <div class="card kpi" id="kpi-posts-without-text"><span class="kpi-label">Posts sem Texto</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-posts-without-text-sub">--</span></div>
+          <div class="card kpi" id="kpi-avg-comments-post"><span class="kpi-label">Média Comentários / Post</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-avg-comments-post-sub">--</span></div>
+          <div class="card kpi" id="kpi-langs"><span class="kpi-label">Idiomas em Posts</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-langs-sub">--</span></div>
+        </div>
+
+        <div class="grid grid-2 mt-14">
+          <div class="card chart-card"><div class="card-header"><span>Idiomas (Posts)</span><span class="chip">Barra</span></div><div class="chart" id="chart-lang-posts"></div></div>
+          <div class="card chart-card"><div class="card-header"><span>Tamanho Médio do Texto</span><span class="chip">Indicador</span></div><div class="chart" id="chart-text-length"></div></div>
+        </div>
+
+        <div class="grid grid-2 mt-14">
+          <div class="card chart-card"><div class="card-header"><span>Top tópicos (tags)</span><span class="chip">Barra</span></div><div class="chart" id="chart-top-tags"></div></div>
+          <div class="card table-card"><div class="card-header"><span>Posts em alta</span><span class="chip">Tabela</span></div>
+            <table class="data-table" id="table-top-posts"><thead><tr><th>Post</th><th>Curso</th><th>Likes</th><th>Comentários</th><th>Score</th></tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- PESSOAS -->
+      <section class="section panel-hidden" id="panel-pessoas">
+        <h2 class="section-title">Pessoas</h2>
+        <div class="grid grid-3">
+          <div class="card kpi" id="kpi-gender-distribution"><span class="kpi-label">Distribuição de Gênero</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-gender-sub">--</span></div>
+          <div class="card kpi" id="kpi-can-publish"><span class="kpi-label">Pode Publicar</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-can-publish-sub">--</span></div>
+          <div class="card kpi" id="kpi-lang-users"><span class="kpi-label">Idiomas dos Usuários</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-lang-users-sub">--</span></div>
+        </div>
+
+        <div class="grid grid-2 mt-14">
+          <div class="card chart-card"><div class="card-header"><span>Usuários por Idioma</span><span class="chip">Barra</span></div><div class="chart" id="chart-user-lang"></div></div>
+          <div class="card chart-card"><div class="card-header"><span>Usuários por Gênero</span><span class="chip">Barra</span></div><div class="chart" id="chart-user-gender"></div></div>
+        </div>
+
+        <div class="card table-card mt-14">
+          <div class="card-header"><span>Top perfis (score no período)</span><span class="chip">Tabela</span></div>
+          <table class="data-table" id="table-top-users">
+            <thead><tr><th>Usuário</th><th>Nome</th><th>Curso</th><th>Score</th><th>Nível</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VAGAS -->
+      <section class="section panel-hidden" id="panel-vagas">
+        <h2 class="section-title">Vagas</h2>
+        <div class="grid grid-4">
+          <div class="card kpi" id="kpi-jobs-open"><span class="kpi-label">Vagas Abertas</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-jobs-open-sub">--</span></div>
+          <div class="card kpi" id="kpi-applications"><span class="kpi-label">Candidaturas (Período)</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-applications-sub">--</span></div>
+          <div class="card kpi" id="kpi-interviews"><span class="kpi-label">Entrevistas (Período)</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-interviews-sub">--</span></div>
+          <div class="card kpi" id="kpi-hires"><span class="kpi-label">Contratações (Período)</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-hires-sub">--</span></div>
+        </div>
+
+        <div class="grid grid-2 mt-14">
+          <div class="card chart-card"><div class="card-header"><span>Vagas por área</span><span class="chip">Barra</span></div><div class="chart" id="chart-jobs-by-area"></div></div>
+          <div class="card chart-card"><div class="card-header"><span>Candidaturas por dia</span><span class="chip">Linha</span></div><div class="chart" id="chart-applications-daily"></div></div>
+        </div>
+
+        <div class="card table-card mt-14">
+          <div class="card-header"><span>Top vagas (alcance + conversão)</span><span class="chip">Tabela</span></div>
+          <table class="data-table" id="table-top-jobs">
+            <thead><tr><th>Vaga</th><th>Empresa</th><th>Área</th><th>Views</th><th>Applies</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- LOCALIZAÇÃO -->
+      <section class="section panel-hidden" id="panel-localizacao">
+        <h2 class="section-title">Localização</h2>
+        <div class="grid grid-3">
+          <div class="card kpi" id="kpi-total-locations"><span class="kpi-label">Regiões cadastradas</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-total-locations-sub">--</span></div>
+          <div class="card kpi" id="kpi-states"><span class="kpi-label">Estados</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-states-sub">--</span></div>
+          <div class="card kpi" id="kpi-cities"><span class="kpi-label">Cidades</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-cities-sub">--</span></div>
+        </div>
+
+        <div class="grid grid-2 mt-14">
+          <div class="card chart-card"><div class="card-header"><span>Distribuição de localizações</span><span class="chip">Barra</span></div><div class="chart" id="chart-locations"></div></div>
+          <div class="card chart-card"><div class="card-header"><span>Tipos de região</span><span class="chip">Donut</span></div><div class="chart" id="chart-location-types"></div></div>
+        </div>
+
+        <div class="card chart-card mt-14">
+          <div class="card-header"><span>Mapa de atividade (posts)</span><span class="chip">Mapa</span></div>
+          <div class="chart chart-map" id="chart-map"></div>
+        </div>
+      </section>
+
+      <!-- RAI -->
+      <section class="section panel-hidden" id="panel-rai">
+        <h2 class="section-title">Análise do RAI</h2>
+        <div class="card mt-14" id="rai-banner">
+          <div class="card-header">
+            <span>Central RAI</span>
+            <span class="chip">Live insights</span>
+          </div>
+          <div id="rai-banner-body"></div>
+        </div>
+
+        <div class="grid grid-3">
+          <div class="card kpi" id="kpi-rai-signal">
+            <span class="kpi-label">Sinal do dia</span>
+            <span class="kpi-value">--</span>
+            <span class="kpi-sub" id="kpi-rai-signal-sub">--</span>
+          </div>
+          <div class="card kpi" id="kpi-rai-risk">
+            <span class="kpi-label">Risco</span>
+            <span class="kpi-value">--</span>
+            <span class="kpi-sub" id="kpi-rai-risk-sub">--</span>
+          </div>
+          <div class="card kpi" id="kpi-rai-forecast">
+            <span class="kpi-label">Previsão (próx. 30d)</span>
+            <span class="kpi-value">--</span>
+            <span class="kpi-sub" id="kpi-rai-forecast-sub">--</span>
+          </div>
+        </div>
+
+        <div class="grid grid-3 mt-14">
+          <div class="card chart-card">
+            <div class="card-header"><span>Heatmap de horários (atividade)</span><span class="chip">Heatmap</span></div>
+            <div class="chart" id="chart-rai-heatmap"></div>
+          </div>
+          <div class="card chart-card">
+            <div class="card-header"><span>Top “movers” (7d vs 7d)</span><span class="chip">Barra</span></div>
+            <div class="chart" id="chart-rai-movers"></div>
+          </div>
+          <div class="card chart-card">
+            <div class="card-header"><span>Qualidade do feed</span><span class="chip">Donut</span></div>
+            <div class="chart" id="chart-rai-quality"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-2 mt-14">
+          <div class="card table-card">
+            <div class="card-header">
+              <span>Leituras do RAI</span>
+              <span class="chip">Insights</span>
+            </div>
+            <div id="rai-insights" class="rai-list"></div>
+          </div>
+
+          <div class="card table-card">
+            <div class="card-header">
+              <span>Ações sugeridas</span>
+              <span class="chip">Playbook</span>
+            </div>
+            <div id="rai-actions" class="rai-list"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-2 mt-14">
+          <div class="card table-card">
+            <div class="card-header">
+              <span>Watchlist do RAI</span>
+              <span class="chip">Alertas</span>
+            </div>
+            <div id="rai-watchlist" class="rai-list"></div>
+          </div>
+
+          <div class="card table-card">
+            <div class="card-header">
+              <span>Resumo executivo</span>
+              <span class="chip">TL;DR</span>
+            </div>
+            <div id="rai-tldr" class="rai-list"></div>
+          </div>
+        </div>
+
+        <div class="card table-card mt-14">
+          <div class="card-header">
+            <span>Radar de tendência</span>
+            <span class="chip">30 dias</span>
+          </div>
+          <div class="chart" id="chart-rai-radar"></div>
+        </div>
+
+        <div class="grid grid-2 mt-14">
+          <div class="card table-card">
+            <div class="card-header"><span>Previsão por cenário</span><span class="chip">Cenários</span></div>
+            <table class="data-table" id="table-rai-scenarios">
+              <thead><tr><th>Cenário</th><th>Interações 30d</th><th>O que muda</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="card table-card">
+            <div class="card-header"><span>Oportunidades por curso</span><span class="chip">Ranking</span></div>
+            <table class="data-table" id="table-rai-opportunities">
+              <thead><tr><th>Curso</th><th>Sinal</th><th>Motivo</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- PERFIL -->
+      <section class="section panel-hidden" id="panel-perfil">
+        <h2 class="section-title">Perfil & Gamificação</h2>
+        <div class="grid grid-3">
+          <div class="card kpi" id="kpi-my-level"><span class="kpi-label">Seu nível</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-my-level-sub">--</span></div>
+          <div class="card kpi" id="kpi-my-score"><span class="kpi-label">Score (Período)</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-my-score-sub">--</span></div>
+          <div class="card kpi" id="kpi-my-rank"><span class="kpi-label">Ranking no curso</span><span class="kpi-value">--</span><span class="kpi-sub" id="kpi-my-rank-sub">--</span></div>
+        </div>
+
+        <div class="grid grid-2 mt-14">
+          <div class="card table-card">
+            <div class="card-header"><span>Ranking por curso (Top 10)</span><span class="chip">Tabela</span></div>
+            <table class="data-table" id="table-course-ranking">
+              <thead><tr><th>Pos.</th><th>Aluno</th><th>Curso</th><th>Pontos</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="card chart-card">
+            <div class="card-header"><span>Distribuição de níveis</span><span class="chip">Barra</span></div>
+            <div class="chart" id="chart-level-distribution"></div>
+          </div>
+        </div>
+
+        <div class="card table-card mt-14">
+          <div class="card-header"><span>Conquistas (demo)</span><span class="chip">Badges</span></div>
+          <div class="badges" id="badges"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+

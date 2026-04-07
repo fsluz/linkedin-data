@@ -1,0 +1,17 @@
+# Ambiente virtual
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Modelos treinados (arquivos grandes)
+models/*.pkl
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Sistema
+.DS_Store
+Thumbs.db
